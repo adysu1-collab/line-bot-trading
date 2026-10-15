@@ -1,4 +1,3 @@
-
 import os
 import re
 import json
@@ -84,18 +83,17 @@ async def callback(request: Request):
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     text = event.message.text.strip().lower()
-    match = re.search(r'(tx|台指期|00685l)\s*([0-9.]+)', text)
+    # 支援 c txf 與 c 685l 格式（允許中間有空格或直接緊接數字）
+    match = re.search(r'c\s*(txf|685l)\s*([0-9.]+)', text)
     if not match:
-        reply_text = "指令格式錯誤。\n請輸入例如：\n• 00685l 12.98\n• 台指期 49995"
+        reply_text = "指令格式錯誤。\n請輸入例如：\n• c txf48750\n• c 685l13.5"
     else:
         raw_type = match.group(1)
         target_val = float(match.group(2))
         
-        if "00685l" in raw_type:
+        if "685l" in raw_type:
             reply_text = query_etf_to_tx(target_val)
         else:
             reply_text = query_tx_to_etf(target_val)
     
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
-
-
